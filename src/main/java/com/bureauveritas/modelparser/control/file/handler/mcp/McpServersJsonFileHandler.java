@@ -69,13 +69,11 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
             if (pdpq == null) {
                 throw new RuntimeException("No protocol domain path found for server: " + serverName);
             }
-            String baseUri = pdpq.protocol() + pdpq.domain() + pdpq.path();
-            String endpoint = pdpq.path() + (pdpq.query() != null ? "?" + pdpq.query() : "");
-            BurpApi.getInstance().logging().logToOutput("Extracted baseUri: " + baseUri);
-            BurpApi.getInstance().logging().logToOutput("Extracted endpoint: " + endpoint);
+            BurpApi.getInstance().logging().logToOutput("Extracted baseUri: " + pdpq.getBaseUri());
+            BurpApi.getInstance().logging().logToOutput("Extracted endpoint: " + pdpq.getEndpoint());
 
             InspectableHttpClientSseClientTransport transport =
-                new InspectableHttpClientSseClientTransport(baseUri, endpoint, server.getHeaders());
+                new InspectableHttpClientSseClientTransport(pdpq.getBaseUri(), pdpq.getEndpoint(), server.getHeaders());
             try {
                 initializeClientAndGetTools(serverName, transport);
                 String messageEndpoint = transport.getMessageEndpoint().block();
@@ -102,8 +100,15 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
     private void initializeHttpServer(String serverName, HttpMcpServer server) {
         try {
             BurpApi.getInstance().logging().logToOutput("Attempting http server: " + server.getUrl());
+
+            ProtocolDomainPathQuery pdpq = getProtocolDomainPathQuery(server.getUrl());
+            if (pdpq == null) {
+                throw new RuntimeException("No protocol domain path found for server: " + serverName);
+            }
+
             Map<String,String> headers = server.getHeaders();
-            var builder = HttpClientStreamableHttpTransport.builder(server.getUrl());
+            var builder = HttpClientStreamableHttpTransport.builder(pdpq.getBaseUri());
+
             if (headers != null && !headers.isEmpty()) {
                 BurpApi.getInstance().logging().logToOutput("Applying headers: " + headers);
                 var requestBuilder = HttpRequest.newBuilder();
@@ -111,13 +116,12 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
                 builder.requestBuilder(requestBuilder);
             }
             serverHeadersMap.put(serverName, server.getHeaders());
-            HttpClientStreamableHttpTransport transport = builder.build();
+
+            HttpClientStreamableHttpTransport transport = builder.endpoint(pdpq.getEndpoint()).build();
             try {
                 initializeClientAndGetTools(serverName, transport);
-                URI serverUrl = new URI(server.getUrl());
-                String endpoint = serverUrl.getPath() + (serverUrl.getQuery() != null ? "?" + serverUrl.getQuery() : "");
-                BurpApi.getInstance().logging().logToOutput("Extracted endpoint: " + endpoint);
-                serverEndpointMap.put(serverName, endpoint);
+                BurpApi.getInstance().logging().logToOutput("Extracted endpoint: " + pdpq.getEndpoint());
+                serverEndpointMap.put(serverName, pdpq.getEndpoint());
                 BurpApi.getInstance().logging().logToOutput("Success");
             }
             finally {
@@ -282,7 +286,15 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
         return hosts;
     }
 
-    private record ProtocolDomainPathQuery(String protocol, String domain, String path, String query) {}
+    private record ProtocolDomainPathQuery(String protocol, String domain, String path, String query) {
+        String getBaseUri() {
+            return protocol + domain + path;
+        }
+
+        String getEndpoint() {
+            return path + (query != null ? "?" + query : "");
+        }
+    }
 
     private ProtocolDomainPathQuery getProtocolDomainPathQuery(String url) {
         Matcher matcher = HTTP_PATTERN.matcher(url);
