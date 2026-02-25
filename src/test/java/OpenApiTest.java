@@ -7,11 +7,11 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import org.openapitools.codegen.CodegenOperation;
 import org.openapitools.codegen.examples.ExampleGenerator;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.util.*;
@@ -37,7 +37,7 @@ public class OpenApiTest extends MontoyaTest{
     @BeforeAll
     static void setup() {
         Logger logger = (Logger) LoggerFactory.getLogger(ExampleGenerator.class);
-        logger.setLevel(Level.ERROR);
+        logger.atLevel(Level.ERROR);
     }
 
     @Test

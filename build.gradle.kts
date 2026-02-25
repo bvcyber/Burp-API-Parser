@@ -40,7 +40,6 @@ dependencies {
 
     implementation("io.swagger.core.v3:swagger-core:2.2.42")
     implementation("io.swagger.parser.v3:swagger-parser:2.1.37")
-    implementation("io.swagger:swagger-inflector:2.0.14")
     implementation("org.openapitools:openapi-generator:7.19.0") {
         // Exclude heavy template dependencies and unnecessary modules
         exclude(group = "org.openapitools", module = "openapi-generator-cli")
