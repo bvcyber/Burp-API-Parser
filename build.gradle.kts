@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.bureauveritas"
-version = "2.8.5"
+version = "2.8.6"
 
 repositories {
     mavenCentral()
