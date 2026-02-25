@@ -3,5 +3,5 @@ pluginManagement {
         kotlin("jvm") version "1.9.20"
     }
 }
-rootProject.name = "model-parser"
+rootProject.name = "api-parser"
 
