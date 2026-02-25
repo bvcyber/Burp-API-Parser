@@ -88,11 +88,6 @@ public class Table {
         getModel().setColumnCount(0);
     }
 
-    public void clearTable() {
-        clearRows();
-        clearColumns();
-    }
-
     public void addRow(Object... row) {
         getModel().addRow(row);
     }
