@@ -21,7 +21,7 @@ dependencies {
     implementation("software.amazon.awssdk:codegen:2.41.13") {
         exclude(group = "software.amazon.awssdk", module = "ruleset-testing-core")
     }
-    implementation("net.portswigger.burp.extensions:montoya-api:2025.12")
+    compileOnly("net.portswigger.burp.extensions:montoya-api:2025.12")
     implementation("com.intellij:forms_rt:7.0.3")
     implementation("org.json:json:20251224")
     implementation("commons-io:commons-io:2.21.0")
@@ -55,6 +55,7 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testCompileOnly("net.portswigger.burp.extensions:montoya-api:2025.12")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
