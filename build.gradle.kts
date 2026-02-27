@@ -18,15 +18,16 @@ java {
 }
 
 dependencies {
-    implementation("software.amazon.awssdk:codegen:2.41.13") {
-        exclude(group = "software.amazon.awssdk", module = "ruleset-testing-core")
-    }
     compileOnly("net.portswigger.burp.extensions:montoya-api:2025.12")
     implementation("com.intellij:forms_rt:7.0.3")
-    implementation("org.json:json:20251224")
     implementation("commons-io:commons-io:2.21.0")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("io.burt:jmespath-gson:0.6.0")
+
+    /** AWS JSON **/
+    implementation("software.amazon.awssdk:codegen:2.41.13") {
+        exclude(group = "software.amazon.awssdk", module = "ruleset-testing-core")
+    }
     // reference
     // https://github.com/google/protobuf-gradle-plugin/blob/master/examples/exampleKotlinDslProject/build.gradle.kts
     implementation("com.google.protobuf:protobuf-java:4.33.3")
@@ -35,9 +36,7 @@ dependencies {
     implementation("io.grpc:grpc-stub:1.78.0")
     compileOnly("jakarta.annotation:jakarta.annotation-api:3.0.0")
 
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
-
+    /** OpenAPI / Swagger **/
     implementation("io.swagger.core.v3:swagger-core:2.2.42")
     implementation("io.swagger.parser.v3:swagger-parser:2.1.37")
     implementation("org.openapitools:openapi-generator:7.19.0") {
@@ -50,9 +49,19 @@ dependencies {
     implementation("tools.jackson.dataformat:jackson-dataformat-xml:3.0.3")
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.3")
 
+    /** MCP **/
     implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:0.18.0"))
     implementation("io.modelcontextprotocol.sdk:mcp")
 
+    /** A2A **/
+    implementation("io.github.a2asdk:a2a-java-sdk-client:0.3.3.Final")
+    implementation("io.github.a2asdk:a2a-java-sdk-transport-rest:0.3.3.Final")
+
+    /** Lombok **/
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    /** Junit / Testing **/
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testCompileOnly("net.portswigger.burp.extensions:montoya-api:2025.12")
