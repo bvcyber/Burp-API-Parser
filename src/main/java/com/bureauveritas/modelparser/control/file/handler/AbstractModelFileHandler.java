@@ -27,7 +27,8 @@ public abstract class AbstractModelFileHandler<T> implements iModelFileHandler {
     @Getter
     private Map<String,Object> additionalProperties = new HashMap<>();
     private static final Pattern httpPattern = Pattern.compile("^(https?://)?([^/:]+)(?::(\\d+))?(.*)");
-    private static final String DEFAULT_HOST = "http://fixme";
+    private static final String DEFAULT_HOST = "fixme";
+    private static final String DEFAULT_HOST_URL = "http://" + DEFAULT_HOST;
 
     protected AbstractModelFileHandler(T modelObject) {
         model = modelObject;
@@ -161,7 +162,7 @@ public abstract class AbstractModelFileHandler<T> implements iModelFileHandler {
     @Override
     public HttpRequest applyHost(String host, HttpRequest httpRequest) {
         if (host == null || host.isBlank() || host.equals("/")) {
-            host = DEFAULT_HOST; // missing Host makes burp unhappy
+            host = DEFAULT_HOST_URL; // missing Host makes burp unhappy
         }
         Matcher matcher = httpPattern.matcher(host);
         if (matcher.find()) {
@@ -194,7 +195,7 @@ public abstract class AbstractModelFileHandler<T> implements iModelFileHandler {
                 BurpApi.getInstance().logging().logToOutput("Failed to apply host: " + host);
                 BurpApi.getInstance().logging().logToError(e);
                 httpRequest = httpRequest
-                    .withService(HttpService.httpService(DEFAULT_HOST, false))
+                    .withService(HttpService.httpService(DEFAULT_HOST_URL))
                     .withRemovedHeader("host") // aws, botocore sets a blank "host" header
                     .withHeader("Host", DEFAULT_HOST);
             }
