@@ -85,6 +85,7 @@ public class ModelViewTab {
     private Table variablesTableWrapper;
     private final ShapeNameStack previousShapeNameStack = new ShapeNameStack();
     private iModelFileHandler modelFileHandler;
+    private final OpenModelFile openModelFileHandler = new OpenModelFile();
 
     private ModelViewTab(JTabbedPane tabbedPane) {
         $$$setupUI$$$();
@@ -162,8 +163,8 @@ public class ModelViewTab {
                             ClassLoader original = ct.getContextClassLoader();
                             ct.setContextClassLoader(getClass().getClassLoader());
 
-                            OpenModelFile openModelFile = new OpenModelFile(fileChooser.getSelectedFile());
-                            modelFileHandler = openModelFile.getModelFileHandler();
+                            openModelFileHandler.loadModelFromFile(fileChooser.getSelectedFile());
+                            modelFileHandler = openModelFileHandler.getModelFileHandler();
                             ct.setContextClassLoader(original);
                             return null;
                         }

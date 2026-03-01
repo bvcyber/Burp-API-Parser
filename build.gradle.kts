@@ -64,7 +64,7 @@ dependencies {
     /** Junit / Testing **/
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testCompileOnly("net.portswigger.burp.extensions:montoya-api:2025.12")
+    testImplementation("net.portswigger.burp.extensions:montoya-api:2025.12")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

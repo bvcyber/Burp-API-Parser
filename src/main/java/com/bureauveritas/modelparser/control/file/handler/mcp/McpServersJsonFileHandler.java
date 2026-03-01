@@ -35,6 +35,8 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
+import com.bureauveritas.modelparser.control.file.util.UrlParsingUtils;
+import com.bureauveritas.modelparser.control.file.util.UrlParsingUtils.ProtocolDomainPathQuery;
 
 import static com.bureauveritas.modelparser.control.file.handler.mcp.McpUtils.*;
 import static com.bureauveritas.modelparser.model.mcp.McpRequestBuilder.*;
@@ -65,7 +67,7 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
     private void initializeSseServer(String serverName, SseMcpServer server) {
         try {
             BurpApi.getInstance().logging().logToOutput("Attempting sse server: " + server.getUrl());
-            ProtocolDomainPathQuery pdpq = getProtocolDomainPathQuery(server.getUrl());
+            ProtocolDomainPathQuery pdpq = UrlParsingUtils.parseProtocolDomainPathQuery(server.getUrl());
             if (pdpq == null) {
                 throw new RuntimeException("No protocol domain path found for server: " + serverName);
             }
@@ -101,7 +103,7 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
         try {
             BurpApi.getInstance().logging().logToOutput("Attempting http server: " + server.getUrl());
 
-            ProtocolDomainPathQuery pdpq = getProtocolDomainPathQuery(server.getUrl());
+            ProtocolDomainPathQuery pdpq = UrlParsingUtils.parseProtocolDomainPathQuery(server.getUrl());
             if (pdpq == null) {
                 throw new RuntimeException("No protocol domain path found for server: " + serverName);
             }
@@ -275,7 +277,7 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
         List<String> hosts = new ArrayList<>();
         McpServer server = model.getMcpServers().get(parsed.serverName());
         String serverUrl = getServerUrl(server);
-        ProtocolDomainPathQuery pdpq = getProtocolDomainPathQuery(serverUrl);
+        ProtocolDomainPathQuery pdpq = UrlParsingUtils.parseProtocolDomainPathQuery(serverUrl);
 
         if (pdpq != null) {
             hosts.add(pdpq.protocol() + pdpq.domain());
@@ -286,21 +288,6 @@ public class McpServersJsonFileHandler extends AbstractModelFileHandler<McpServe
         return hosts;
     }
 
-    private record ProtocolDomainPathQuery(String protocol, String domain, String path, String query) {
-        String getBaseUri() {
-            return protocol + domain + path;
-        }
-
-        String getEndpoint() {
-            return path + (query != null ? "?" + query : "");
-        }
-    }
-
-    private ProtocolDomainPathQuery getProtocolDomainPathQuery(String url) {
-        Matcher matcher = HTTP_PATTERN.matcher(url);
-        return matcher.find() ?
-            new ProtocolDomainPathQuery(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(4)) : null;
-    }
 
     private String getServerUrl(McpServer server) {
         return switch(server.getType()) {

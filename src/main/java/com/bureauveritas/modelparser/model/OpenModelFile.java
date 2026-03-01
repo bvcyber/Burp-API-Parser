@@ -19,6 +19,7 @@ public class OpenModelFile {
         modelFileLoaderChain
             .setNext(new OpenAPIFileLoader())
             .setNext(new McpServersJsonFileLoader())
+            .setNext(new PostmanCollectionFileLoader())
             .setNext(new ErrorFileLoader());
     }
 

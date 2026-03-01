@@ -13,7 +13,6 @@ public class McpUtils {
             .withValueInclusion(JsonInclude.Include.NON_NULL)
             .withContentInclusion(JsonInclude.Include.NON_NULL))
         .build();
-    public static final Pattern HTTP_PATTERN = Pattern.compile("^(https?://)([^/]+)([^?]*)(?:\\?(.*))?$");
     public static final Pattern OPERATION_NAME_PATTERN = Pattern.compile("^([^(]+) (?:\\((\\S+)\\))?$");
 
     public static HttpRequest applyHttpStreamingHeaders(HttpRequest request, boolean withSessionId) {
