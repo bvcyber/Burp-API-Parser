@@ -9,6 +9,7 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.EnumFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
 import tools.jackson.dataformat.xml.XmlWriteFeature;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<OpenAPI, PostmanCollectionFileHandler> {
     private static final ObjectMapper jsonMapper = JsonMapper.builder()
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .build();
     private static final ObjectMapper rawJsonMapper = JsonMapper.builder().build();
     private static final XmlMapper rawXmlMapper = XmlMapper.builder()
