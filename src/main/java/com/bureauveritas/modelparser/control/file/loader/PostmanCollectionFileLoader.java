@@ -11,6 +11,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlWriteFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import com.bureauveritas.modelparser.control.file.util.UrlParsingUtils;
 import com.bureauveritas.modelparser.control.file.util.UrlParsingUtils.ProtocolDomainPathQuery;
 import io.swagger.v3.oas.models.*;
@@ -21,9 +24,8 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
-import tools.jackson.dataformat.xml.XmlWriteFeature;
-import tools.jackson.dataformat.yaml.YAMLFactory;
-import tools.jackson.dataformat.yaml.YAMLMapper;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 
 import java.io.File;
 import java.util.*;
@@ -65,7 +67,8 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
 
         Map<String, String> variables = toVariableMap(collection.getVariable());
         Set<String> serverUrls = new LinkedHashSet<>();
-        addItems(openAPI, collection.getItem(), new ArrayList<>(), variables, serverUrls);
+        applyCollectionAuth(openAPI, collection.getAuth());
+        addItems(openAPI, collection.getItem(), new ArrayList<>(), variables, serverUrls, collection.getAuth());
 
         if (!serverUrls.isEmpty()) {
             openAPI.setServers(serverUrls.stream().map(url -> new Server().url(url)).toList());
@@ -98,7 +101,8 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
                           List<PostmanCollectionModel.Item> items,
                           List<String> folderPath,
                           Map<String, String> variables,
-                          Set<String> serverUrls) {
+                          Set<String> serverUrls,
+                          PostmanCollectionModel.Auth inheritedAuth) {
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -106,15 +110,17 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             if (item == null) {
                 continue;
             }
+            PostmanCollectionModel.Auth itemAuth = item.getAuth() != null ? item.getAuth() : inheritedAuth;
+            // Traverse folders recursively, applying auth inheritance and collecting server URLs along the way
             if (item.isFolder()) {
                 List<String> nextFolderPath = new ArrayList<>(folderPath);
                 if (item.getName() != null && !item.getName().isBlank()) {
                     nextFolderPath.add(item.getName());
                 }
-                addItems(openAPI, item.getItem(), nextFolderPath, variables, serverUrls);
+                addItems(openAPI, item.getItem(), nextFolderPath, variables, serverUrls, itemAuth);
             }
             else if (item.getRequest() != null) {
-                addRequest(openAPI, item, folderPath, variables, serverUrls);
+                addRequest(openAPI, item, folderPath, variables, serverUrls, itemAuth);
             }
         }
     }
@@ -123,7 +129,8 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
                             PostmanCollectionModel.Item item,
                             List<String> folderPath,
                             Map<String, String> variables,
-                            Set<String> serverUrls) {
+                            Set<String> serverUrls,
+                            PostmanCollectionModel.Auth inheritedAuth) {
         PostmanCollectionModel.Request request = item.getRequest();
         String path = buildPath(request.getUrl(), variables);
         if (path == null || path.isBlank()) {
@@ -167,6 +174,9 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
         if (requestBody != null) {
             operation.setRequestBody(requestBody);
         }
+
+        PostmanCollectionModel.Auth effectiveAuth = resolveAuth(request.getAuth(), item.getAuth(), inheritedAuth);
+        applyAuthToOperation(openAPI, operation, effectiveAuth);
 
         operation.setResponses(buildResponses(item.getResponse()));
 
@@ -305,6 +315,9 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
 
     private Schema<?> buildBodySchema(PostmanCollectionModel.Body body) {
         String mode = getBodyMode(body);
+        if ("RAW".equals(mode)) {
+            return buildRawSchema(body);
+        }
         if ("URLENCODED".equals(mode) && body.getUrlencoded() != null) {
             return buildFormSchema(body.getUrlencoded());
         }
@@ -316,9 +329,6 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             schema.addProperty("query", new StringSchema());
             schema.addProperty("variables", new ObjectSchema());
             return schema;
-        }
-        if ("RAW".equals(mode)) {
-            return buildRawSchema(body);
         }
         return new StringSchema();
     }
@@ -604,5 +614,137 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             }
         }
         return result;
+    }
+
+    private void applyCollectionAuth(OpenAPI openAPI, PostmanCollectionModel.Auth auth) {
+        if (auth == null || auth.getType() == null || isNoAuth(auth)) {
+            return;
+        }
+        SecurityScheme scheme = buildSecurityScheme(auth);
+        if (scheme == null) {
+            return;
+        }
+        Components components = openAPI.getComponents();
+        if (components == null) {
+            components = new Components();
+            openAPI.setComponents(components);
+        }
+        Map<String, SecurityScheme> schemes = components.getSecuritySchemes();
+        if (schemes == null) {
+            schemes = new LinkedHashMap<>();
+            components.setSecuritySchemes(schemes);
+        }
+        String schemeName = buildSchemeName(auth, scheme);
+        schemes.putIfAbsent(schemeName, scheme);
+
+        SecurityRequirement requirement = new SecurityRequirement();
+        requirement.addList(schemeName, Collections.emptyList());
+        openAPI.addSecurityItem(requirement);
+    }
+
+    private PostmanCollectionModel.Auth resolveAuth(PostmanCollectionModel.Auth requestAuth,
+                                                    PostmanCollectionModel.Auth itemAuth,
+                                                    PostmanCollectionModel.Auth inheritedAuth) {
+        if (requestAuth != null) {
+            return requestAuth;
+        }
+        if (itemAuth != null) {
+            return itemAuth;
+        }
+        return inheritedAuth;
+    }
+
+    private void applyAuthToOperation(OpenAPI openAPI, Operation operation, PostmanCollectionModel.Auth auth) {
+        if (auth == null || auth.getType() == null) {
+            return;
+        }
+        if (isNoAuth(auth)) {
+            operation.setSecurity(List.of());
+            return;
+        }
+        SecurityScheme scheme = buildSecurityScheme(auth);
+        if (scheme == null) {
+            return;
+        }
+        Components components = openAPI.getComponents();
+        if (components == null) {
+            components = new Components();
+            openAPI.setComponents(components);
+        }
+        Map<String, SecurityScheme> schemes = components.getSecuritySchemes();
+        if (schemes == null) {
+            schemes = new LinkedHashMap<>();
+            components.setSecuritySchemes(schemes);
+        }
+        String schemeName = buildSchemeName(auth, scheme);
+        schemes.putIfAbsent(schemeName, scheme);
+
+        SecurityRequirement requirement = new SecurityRequirement();
+        requirement.addList(schemeName, Collections.emptyList());
+        operation.addSecurityItem(requirement);
+    }
+
+    private boolean isNoAuth(PostmanCollectionModel.Auth auth) {
+        return auth != null && auth.getType() != null &&
+            "noauth".equalsIgnoreCase(auth.getType().toString());
+    }
+
+    private SecurityScheme buildSecurityScheme(PostmanCollectionModel.Auth auth) {
+        String type = auth.getType().toString().toLowerCase(Locale.ROOT);
+        return switch (type) {
+            case "apikey" -> buildApiKeyScheme(auth);
+            case "bearer" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer");
+            case "basic" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("basic");
+            case "oauth2" -> new SecurityScheme()
+                .type(SecurityScheme.Type.OAUTH2)
+                .flows(new io.swagger.v3.oas.models.security.OAuthFlows());
+            case "awsv4" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("aws4");
+            case "digest" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("digest");
+            case "hawk" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("hawk");
+            case "ntlm" -> new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("ntlm");
+            default -> null;
+        };
+    }
+
+    private SecurityScheme buildApiKeyScheme(PostmanCollectionModel.Auth auth) {
+        Map<String, String> attrs = authAttributesToMap(auth.getApikey());
+        String inValue = attrs.getOrDefault("in", "header").toLowerCase(Locale.ROOT);
+        return new SecurityScheme()
+            .type(SecurityScheme.Type.APIKEY)
+            .name(attrs.getOrDefault("key", "X-API-KEY"))
+            .in("query".equals(inValue) ? SecurityScheme.In.QUERY : SecurityScheme.In.HEADER);
+    }
+
+    private Map<String, String> authAttributesToMap(List<PostmanCollectionModel.AuthAttribute> attrs) {
+        if (attrs == null) {
+            return new HashMap<>();
+        }
+        return attrs.stream()
+            .filter(attr -> attr != null && attr.getKey() != null)
+            .collect(Collectors.toMap(
+                PostmanCollectionModel.AuthAttribute::getKey,
+                attr -> attr.getValue() == null ? "" : String.valueOf(attr.getValue())
+            ));
+    }
+
+    private String buildSchemeName(PostmanCollectionModel.Auth auth, SecurityScheme scheme) {
+        String type = auth.getType().toString().toLowerCase(Locale.ROOT);
+        if (scheme.getType() == SecurityScheme.Type.APIKEY) {
+            String in = scheme.getIn() != null ? scheme.getIn().name().toLowerCase(Locale.ROOT) : "header";
+            return "postman_" + type + "_" + in + "_" + scheme.getName();
+        }
+        return "postman_" + type;
     }
 }
