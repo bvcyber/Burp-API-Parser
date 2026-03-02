@@ -25,7 +25,7 @@ public abstract class AbstractModelFileHandler<T> implements iModelFileHandler {
     private String fileContent;
     @Setter
     @Getter
-    private Map<String,Object> additionalProperties = new HashMap<>();
+    protected Map<String,Object> additionalProperties = new HashMap<>();
     private static final Pattern httpPattern = Pattern.compile("^(https?://)?([^/:]+)(?::(\\d+))?(.*)");
     private static final String DEFAULT_HOST = "fixme";
     private static final String DEFAULT_HOST_URL = "http://" + DEFAULT_HOST;

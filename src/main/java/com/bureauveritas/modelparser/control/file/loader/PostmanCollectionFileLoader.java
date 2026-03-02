@@ -5,6 +5,7 @@ import com.bureauveritas.modelparser.control.file.handler.openapi.OpenAPIFileHan
 import com.bureauveritas.modelparser.control.file.handler.postman.PostmanCollectionFileHandler;
 import com.bureauveritas.modelparser.model.postman.FormFieldType;
 import com.bureauveritas.modelparser.model.postman.PostmanCollectionModel;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -21,6 +22,8 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import tools.jackson.dataformat.xml.XmlWriteFeature;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.File;
 import java.util.*;
@@ -36,7 +39,13 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
     private static final XmlMapper rawXmlMapper = XmlMapper.builder()
         .configure(XmlWriteFeature.WRITE_XML_DECLARATION, true)
         .build();
+    private static final YAMLMapper yamlMapper = YAMLMapper.builder(
+        YAMLFactory.builder()
+            .loadSettings(LoadSettings.builder().setCodePointLimit(1024 * 1024 * 1024).build())
+            .build())
+        .build();
     private static final Pattern PATH_PARAM_PATTERN = Pattern.compile("\\{([^}]+)}");
+    private final Map<String, PostmanCollectionModel.Item> operationItemMap = new HashMap<>();
 
     public PostmanCollectionFileLoader() {
         super(PostmanCollectionFileHandler::new);
@@ -64,6 +73,8 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
 
         model = openAPI;
         additionalProperties.put(OpenAPIFileHandler.UNRESOLVED_MODEL, model);
+        additionalProperties.put(PostmanCollectionFileHandler.POSTMAN_MODEL, collection);
+        additionalProperties.put(PostmanCollectionFileHandler.OPERATION_ITEM_MAP, operationItemMap);
         return model;
     }
 
@@ -120,7 +131,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
         }
         Object methodValue = request.getMethod();
         String method = methodValue != null ? methodValue.toString() : "GET";
-        method = method.toUpperCase(Locale.ROOT);
+        method = method.toUpperCase();
 
         String serverUrl = buildServerUrl(request.getUrl(), variables);
         if (serverUrl != null && !serverUrl.isBlank()) {
@@ -138,7 +149,10 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
         if (!folderPath.isEmpty()) {
             operation.setTags(folderPath);
         }
-        operation.setOperationId(buildOperationId(method, path, item.getName(), folderPath));
+
+        String operationId = buildOperationId(method, path, item.getName(), folderPath);
+        operation.setOperationId(operationId);
+        operationItemMap.put(operationId, item);
 
         List<Parameter> parameters = buildParameters(request.getUrl(), path);
         if (!parameters.isEmpty()) {
@@ -160,7 +174,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             case "HEAD" -> pathItem.setHead(operation);
             case "OPTIONS" -> pathItem.setOptions(operation);
             case "TRACE", "CONNECT" -> pathItem.setTrace(operation);
-            default -> pathItem.setGet(operation);
+            case "GET" -> pathItem.setGet(operation);
         }
     }
 
@@ -282,7 +296,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             return new StringSchema();
         }
         String rawType = getRawBodyType(body);
-        if ("json".equals(rawType)) {
+        if ("json".equalsIgnoreCase(rawType)) {
             try {
                 JsonNode root = rawJsonMapper.readTree(raw);
                 return buildSchemaFromJsonNode(root);
@@ -291,13 +305,22 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
                 return new StringSchema();
             }
         }
-        if ("xml".equals(rawType)) {
+        else if ("xml".equalsIgnoreCase(rawType)) {
             try {
                 JsonNode root = rawXmlMapper.readTree(raw);
                 return buildSchemaFromJsonNode(root).format("xml");
             }
             catch (Exception ignored) {
                 return new StringSchema().format("xml");
+            }
+        }
+        else if ("yaml".equalsIgnoreCase(rawType)) {
+            try {
+                JsonNode root = yamlMapper.readTree(raw);
+                return buildSchemaFromJsonNode(root).format("yaml");
+            }
+            catch (Exception ignored) {
+                return new StringSchema().format("yaml");
             }
         }
         return new StringSchema();
@@ -348,13 +371,25 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             if (normalized.contains("xml")) {
                 return "xml";
             }
+            if (normalized.contains("yaml")) {
+                return "yaml";
+            }
         }
         String raw = body.getRaw();
-        if (raw != null && BurpApi.getInstance().utilities().jsonUtils().isValidJson(raw)) {
-            return "json";
-        }
-        if (raw != null && raw.trim().startsWith("<")) {
-            return "xml";
+        if (raw != null) {
+            if (BurpApi.getInstance().utilities().jsonUtils().isValidJson(raw)) {
+                return "json";
+            }
+            if (raw.trim().startsWith("<")) {
+                return "xml";
+            }
+            if (raw.contains(":") || raw.contains("-")) {
+                try {
+                    yamlMapper.readTree(raw);
+                    return "yaml";
+                } catch (Exception ignored) {
+                }
+            }
         }
         return "text";
     }
@@ -393,6 +428,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
                 yield lang != null ? switch (lang.toLowerCase()) {
                     case "json" -> "application/json";
                     case "xml" -> "application/xml";
+                    case "yaml" -> "application/yaml";
                     case "html" -> "text/html";
                     case "javascript" -> "application/javascript";
                     default -> "text/plain";
