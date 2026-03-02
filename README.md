@@ -20,7 +20,7 @@
 ## 💡 Features
 
 - **🎯 Reduce manual request crafting** – Import your spec and skip straight to security testing
-- **🔄 Multi-format support** – OpenAPI, Swagger, AWS JSON, MCP models all in one tool
+- **🔄 Multi-format support** – OpenAPI, Swagger, Postman, AWS JSON, MCP models all in one tool
 - **⚡ Instant integration** – One-click send to Repeater, Intruder, Organizer, Sitemap
 
 **🚀 Import → Click → Test**
