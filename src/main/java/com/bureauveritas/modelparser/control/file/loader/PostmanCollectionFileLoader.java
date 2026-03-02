@@ -139,7 +139,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
         }
 
         PathItem pathItem = openAPI.getPaths().computeIfAbsent(path, ignored -> new PathItem());
-        Operation operation = new io.swagger.v3.oas.models.Operation();
+        Operation operation = new Operation();
         if (item.getName() != null && !item.getName().isBlank()) {
             operation.setSummary(item.getName());
         }
@@ -155,6 +155,10 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
         operationItemMap.put(operationId, item);
 
         List<Parameter> parameters = buildParameters(request.getUrl(), path);
+        List<Parameter> headerParams = buildHeaderParameters(request.getHeader(), variables);
+        if (!headerParams.isEmpty()) {
+            parameters.addAll(headerParams);
+        }
         if (!parameters.isEmpty()) {
             operation.setParameters(parameters);
         }
@@ -176,6 +180,35 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
             case "TRACE", "CONNECT" -> pathItem.setTrace(operation);
             case "GET" -> pathItem.setGet(operation);
         }
+    }
+
+    private List<Parameter> buildHeaderParameters(List<PostmanCollectionModel.Header> headers, Map<String, String> variables) {
+        if (headers == null || headers.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Parameter> parameters = new ArrayList<>();
+        for (PostmanCollectionModel.Header header : headers) {
+            if (header == null) {
+                continue;
+            }
+            String key = header.getKey();
+            if (key == null || key.isBlank() || key.equalsIgnoreCase("Content-Type")) {
+                continue;
+            }
+            Parameter param = new Parameter();
+            param.setIn("header");
+            param.setName(key);
+            param.setSchema(new StringSchema());
+            if (header.getValue() != null) {
+                String val = substituteVariables(header.getValue(), variables);
+                param.setExample(val);
+            }
+            if (header.getDescription() != null) {
+                param.setDescription(header.getDescription());
+            }
+            parameters.add(param);
+        }
+        return parameters;
     }
 
     private String buildOperationId(String method, String path, String name, List<String> tags) {
@@ -223,7 +256,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
 
         if (url != null && url.getQuery() != null) {
             for (PostmanCollectionModel.QueryParam query : url.getQuery()) {
-                if (query == null || Boolean.TRUE.equals(query.getDisabled())) {
+                if (query == null) {
                     continue;
                 }
                 String name = query.getKey();
@@ -397,7 +430,7 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
     private Schema<?> buildFormSchema(List<PostmanCollectionModel.FormParam> params) {
         ObjectSchema schema = new ObjectSchema();
         for (PostmanCollectionModel.FormParam param : params) {
-            if (param == null || Boolean.TRUE.equals(param.getDisabled())) {
+            if (param == null) {
                 continue;
             }
             String name = param.getKey();
@@ -452,16 +485,15 @@ public class PostmanCollectionFileLoader extends AbstractModelFileLoaderChain<Op
     }
 
     private String extractContentType(List<PostmanCollectionModel.Header> headers) {
-        if (headers == null) {
-            return null;
-        }
-        for (PostmanCollectionModel.Header header : headers) {
-            if (header == null || Boolean.TRUE.equals(header.getDisabled())) {
-                continue;
-            }
-            String key = header.getKey();
-            if (key != null && key.equalsIgnoreCase("Content-Type")) {
-                return header.getValue();
+        if (headers != null) {
+            for (PostmanCollectionModel.Header header : headers) {
+                if (header == null) {
+                    continue;
+                }
+                String key = header.getKey();
+                if (key != null && key.equalsIgnoreCase("Content-Type")) {
+                    return header.getValue();
+                }
             }
         }
         return null;

@@ -6,26 +6,6 @@ public class OpenAPISampleGenerator {
     private static final java.util.Random random = new java.util.Random();
 
     public static String getSampleValue(CodegenParameter param) {
-//        BurpApi.getInstance().logging().logToOutput("getSampleValue for parameter: " + param.baseName);
-//        BurpApi.getInstance().logging().logToOutput("  defaultValue: " + param.defaultValue);
-//        BurpApi.getInstance().logging().logToOutput("  defaultValue == null: " + (param.defaultValue == null));
-//        BurpApi.getInstance().logging().logToOutput("  defaultValue.equals(\"null\"): " + (param.defaultValue.equals("null")));
-//        BurpApi.getInstance().logging().logToOutput("  example: " + param.example);
-//        BurpApi.getInstance().logging().logToOutput("  examples: " + param.examples);
-//        BurpApi.getInstance().logging().logToOutput("  paramName: " + param.paramName);
-//        BurpApi.getInstance().logging().logToOutput("  isString: " + param.isString);
-//        BurpApi.getInstance().logging().logToOutput("  isInteger: " + param.isInteger);
-//        BurpApi.getInstance().logging().logToOutput("  isLong: " + param.isLong);
-//        BurpApi.getInstance().logging().logToOutput("  isNumber: " + param.isNumber);
-//        BurpApi.getInstance().logging().logToOutput("  isFloat: " + param.isFloat);
-//        BurpApi.getInstance().logging().logToOutput("  isDouble: " + param.isDouble);
-//        BurpApi.getInstance().logging().logToOutput("  isBoolean: " + param.isBoolean);
-//        BurpApi.getInstance().logging().logToOutput("  isDate: " + param.isDate);
-//        BurpApi.getInstance().logging().logToOutput("  isDateTime: " + param.isDateTime);
-//        BurpApi.getInstance().logging().logToOutput("  isUuid: " + param.isUuid);
-//        BurpApi.getInstance().logging().logToOutput("  isArray: " + param.isArray);
-//        BurpApi.getInstance().logging().logToOutput("  isMap: " + param.isMap);
-
         if (param.defaultValue != null && !param.defaultValue.isEmpty() && !param.defaultValue.equals("null")) {
             return param.defaultValue;
         }

@@ -18,34 +18,41 @@ import java.util.stream.Collectors;
 
 public class OpenAPIExampleGenerator {
 
-    private static String getSampleParamValue(
-        CodegenParameter param, String method, String path, String contentType, OpenAPI model, OpenAPI unresolvedModel
-    ) {
+    private static String getSampleParamValue(CodegenParameter param,
+                                              String method,
+                                              String path,
+                                              String contentType,
+                                              OpenAPI model,
+                                              OpenAPI unresolvedModel,
+                                              boolean isFormData) {
         String exampleValue = new OpenAPIExamplesExtractor(model, unresolvedModel)
             .getRandomParameterExample(path, method, param.baseName, null);
         if (exampleValue != null && !exampleValue.isEmpty()) {
             return exampleValue;
         }
-        if (contentType != null) {
-            // Generate sample value if no example found
-            String generatedSample = OpenAPIExampleGenerator.generate(
-                model,
-                unresolvedModel,
-                method,
-                path,
-                contentType,
-                false
-            );
-            if (generatedSample != null && !generatedSample.isEmpty()) {
-                return generatedSample;
-            }
-        }
+//        if (contentType != null) {
+//            // Generate sample value if no example found
+//            String generatedSample = OpenAPIExampleGenerator.generate(
+//                model,
+//                unresolvedModel,
+//                method,
+//                path,
+//                contentType,
+//                isFormData
+//            );
+//            if (generatedSample != null && !generatedSample.isEmpty()) {
+//                return generatedSample;
+//            }
+//        }
         return OpenAPISampleGenerator.getSampleValue(param);
     }
 
-    public static String generate(
-        OpenAPI model, OpenAPI unresolvedModel, String method, String path, String contentType, boolean isFormData
-    ) {
+    public static String generate(OpenAPI model,
+                                  OpenAPI unresolvedModel,
+                                  String method,
+                                  String path,
+                                  String contentType,
+                                  boolean isFormData) {
         try {
             BurpApi.getInstance().logging().logToOutput("Generating example for %s %s %s".formatted(
                 method, path, contentType));
@@ -56,8 +63,13 @@ public class OpenAPIExampleGenerator {
                 return operation.formParams.stream()
                     .map(param -> param.baseName + "=" +
                         BurpApi.getInstance().utilities().urlUtils().encode(
-                            getSampleParamValue(
-                                param, operation.httpMethod, operation.path, contentType, model, unresolvedModel)
+                            getSampleParamValue(param,
+                                operation.httpMethod,
+                                operation.path,
+                                contentType,
+                                model,
+                                unresolvedModel,
+                                isFormData)
                         ))
                     .collect(Collectors.joining("&"));
             }
@@ -104,7 +116,7 @@ public class OpenAPIExampleGenerator {
                     convertedBodyContent : generatedExample;
             }
 
-            return generatedExample;
+            return generatedExample.equals("\"\"") ? "" : generatedExample;
         }
         catch (Exception e) {
             BurpApi.getInstance().logging().logToOutput(

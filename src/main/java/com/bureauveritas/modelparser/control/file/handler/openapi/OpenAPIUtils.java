@@ -76,6 +76,7 @@ public class OpenAPIUtils {
      * Convert object to string based on content type
      */
     public static String convertObjectToStringByContentType(Object obj, String contentType, String shapeName, boolean isFormData) {
+        BurpApi.getInstance().logging().logToOutput("convertObjectToStringByContentType called with contentType: " + contentType + ", shapeName: " + shapeName + ", isFormData: " + isFormData);
         try {
             // Already a string - return as-is
             if (obj instanceof String) {
@@ -105,6 +106,7 @@ public class OpenAPIUtils {
                 else if (contentTypeLowerCase.contains("application/x-www-form-urlencoded") ||
                         contentTypeLowerCase.contains("multipart/form-data") ||
                         contentTypeLowerCase.contains("multipart/mixed")) {
+                    BurpApi.getInstance().logging().logToOutput("Converting object to form data: " + obj);
                     return convertToFormData(obj);
                 }
             }
@@ -150,6 +152,7 @@ public class OpenAPIUtils {
             }
 
             Map<String, Object> map = convertToMap(obj);
+            BurpApi.getInstance().logging().logToOutput("Converting object to form data: " + map);
 
             return map.entrySet().stream()
                 .map(entry ->
@@ -157,6 +160,7 @@ public class OpenAPIUtils {
                         BurpApi.getInstance().utilities().urlUtils().encode(entry.getValue().toString()))
                 .collect(Collectors.joining("&"));
         } catch (Exception e) {
+            BurpApi.getInstance().logging().logToError(e);
             return obj.toString();
         }
     }
