@@ -4,7 +4,7 @@
 
 
 
-> **Transform API specs into ready-to-test requests in seconds.** Start pentesting directly from specs. Import OpenAPI, Swagger, MCP, or AWS JSON API specs directly into Burp. Send all APIs to Repeater, Intruder, Sitemap, and more with a single-click. 
+> **Transform API specs into ready-to-test requests in seconds.** Start pentesting directly from specs. Import OpenAPI, Swagger, Postman, MCP, or AWS JSON API specs directly into Burp. Send all APIs to Repeater, Intruder, Sitemap, and more with a single-click. 
 
 <div align="center">
 
@@ -44,8 +44,9 @@
 |-----------------------------|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **OpenAPI 3.0 / 3.1**       | ✅ Supported               | JSON & YAML<br>• Generates requests per content type                                                                                                                 |
 | **Swagger 2.0**             | ✅ Supported               | JSON & YAML<br>• Generates requests per content type                                                                                                                 |
-| **AWS JSON (Botocore)**     | ✅ Supported               | [Requires Python server](#aws-json-setup)<br>• Generate HTTP or awscli requests<br/>📦 [Source models](https://github.com/boto/botocore/tree/develop/botocore/data/) |
+| **Postman Collection**      | ✅ Supported               | Postman Collection 2.1 JSON                                                                                                                                          |
 | **MCP Servers Config JSON** | ✅ Supported               | `sse` & `http` type<br>• Calls `tools/list` on each server and stores the tool schemas in memory<br>• Generates requests for each tool and server capability         |
+| **AWS JSON (Botocore)**     | ✅ Supported               | [Requires Python server](#aws-json-setup)<br>• Generate HTTP or awscli requests<br/>📦 [Source models](https://github.com/boto/botocore/tree/develop/botocore/data/) |
 | **AWS Smithy**              | ❌ Not currently supported |                                                                                                                                                                      |
 
 ---
@@ -59,9 +60,9 @@
 3. Select the downloaded JAR file
 4. Find the API Parser tab in Burp
 
-### OpenAPI / Swagger Setup
+### OpenAPI / Swagger, Postman Collection Setup
 
-**No additional setup needed!** Just load your spec file and start testing.     
+**No additional setup needed!** Just load your file and start testing.     
 
 ### MCP Servers Config Setup
 
@@ -141,30 +142,32 @@ python src/main/python/test_request_serializer_client.py
 |----------|---------------------------------------------------------------------------------------------------------|
 | AWS JSON | • HTTP request format<br/>• awscli command format                                                       |
 | OpenAPI  | • Each defined content type (JSON, XML, etc.)<br/>• Auto-generated examples<br/>• Spec-defined examples |
+| Postman  | • HTTP request                                                                                          |
+| MCP      | • HTTP or SSE request                                                                                   |
 
 **Host Configuration** – Set your target:
 
-| API Type | Available Hosts                                                                       |
-|----------|---------------------------------------------------------------------------------------|
-| AWS JSON | Manual input required ([see limitations](#-limitations))                              |
-| OpenAPI  | • Each host defined in the spec<br>• Manual input<br>(Accepts both URL or FQDN)       |
-| MCP      | Uses the URL in the JSON for connection, then the message endpoint for tools requests |
+| API Type         | Available Hosts                                                                       |
+|------------------|---------------------------------------------------------------------------------------|
+| AWS JSON         | Manual input required ([see limitations](#-limitations))                              |
+| OpenAPI, Postman | • Each host defined in the spec<br>• Manual input<br>(Accepts both URL or FQDN)       |
+| MCP              | Uses the URL in the JSON for connection, then the message endpoint for tools requests |
 
 **Authentication Configuration** – Select an authentication method:
 
-| API Type | Available Authentication Methods                                                              |
-|----------|-----------------------------------------------------------------------------------------------|
-| AWS JSON | None (use the AWS Signer or SigV4 extension)                                                  |
-| OpenAPI  | Auto-generates each security scheme defined in the spec                                       |
-| MCP      | None (use the `headers` field or add additional headers in the Additional Parameters section) |
+| API Type         | Available Authentication Methods                                                              |
+|------------------|-----------------------------------------------------------------------------------------------|
+| AWS JSON         | None (use the AWS Signer or SigV4 extension)                                                  |
+| OpenAPI, Postman | Auto-generates each security scheme defined in the spec                                       |
+| MCP              | None (use the `headers` field or add additional headers in the Additional Parameters section) |
 
 **Include Optional Parameters** – Include/Omit optional parameters:
 
-| API Type | Behavior                                                             |
-|----------|----------------------------------------------------------------------|
-| AWS JSON | Includes parameters based on the value `"required": true`            |
-| OpenAPI  | None (not currently used)                                            |
-| MCP      | Includes parameters based on the `required` field in the tool schema |
+| API Type         | Behavior                                                             |
+|------------------|----------------------------------------------------------------------|
+| AWS JSON         | Includes parameters based on the value `"required": true`            |
+| OpenAPI, Postman | None (not currently used)                                            |
+| MCP              | Includes parameters based on the `required` field in the tool schema |
 
 ---
 
