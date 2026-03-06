@@ -821,7 +821,7 @@ public class ModelViewTab {
         buttonAddVariable.setText("Add");
         panel30.add(buttonAddVariable, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         labelTopMessage = new JLabel();
-        labelTopMessage.setText("Supported files: OpenAPI, Swagger, Postman Collection, AWS Botocore JSON, MCP servers JSON");
+        labelTopMessage.setText("<html><b>Supported files</b>: OpenAPI, Swagger, Postman Collection, AWS Botocore JSON, MCP servers JSON</html>");
         labelTopMessage.putClientProperty("html.disable", Boolean.FALSE);
         parentRoot.add(labelTopMessage, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
