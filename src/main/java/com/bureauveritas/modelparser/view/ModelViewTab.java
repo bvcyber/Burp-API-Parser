@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class ModelViewTab {
     private final JTabbedPane parentTabbedPane;
@@ -145,92 +146,97 @@ public class ModelViewTab {
                     "json,yaml,yml",
                     "json", "yaml", "yml"));
                 int ret = fileChooser.showOpenDialog(parentRoot);
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    BurpApi.getInstance().logging()
-                        .logToOutput("Opening: " + fileChooser.getSelectedFile().getName());
-
-                    operationsTableWrapper.clearRows();
-                    buttonSelectFile.setEnabled(false);
-                    labelTopMessage.setText("Loading...");
-
-                    new SwingWorker<Void, Void>() {
-                        @Override
-                        protected Void doInBackground() {
-                            // The EDT needs to load our class loader to fix dependency issues with the MCP library
-                            // Note: we restore the original class loader at the end, otherwise OpenAPI parser breaks
-                            // FIXME: is there a better way
-                            Thread ct = Thread.currentThread();
-                            ClassLoader original = ct.getContextClassLoader();
-                            ct.setContextClassLoader(getClass().getClassLoader());
-
-                            openModelFileHandler.loadModelFromFile(fileChooser.getSelectedFile());
-                            modelFileHandler = openModelFileHandler.getModelFileHandler();
-                            ct.setContextClassLoader(original);
-                            return null;
-                        }
-
-                        @Override
-                        protected void done() {
-                            try {
-                                textFieldOpenFile.setText(fileChooser.getSelectedFile().getAbsolutePath());
-                                buttonSelectFile.setEnabled(true);
-                                operationsTableWrapper.clearColumns();
-                                if (modelFileHandler != null) {
-                                    // Description blurb at the top of the tab
-                                    StringBuilder descriptionBlurb = new StringBuilder();
-                                    String separator = " · ";
-                                    descriptionBlurb.append("<html>");
-                                    String[][] descriptionFields = {
-                                        {"Model Type", modelFileHandler.getModelType()},
-                                        {"Service Name", modelFileHandler.getServiceName()},
-                                    };
-                                    for (String[] field : descriptionFields) {
-                                        if (field[1] != null && !field[1].isEmpty()) {
-                                            descriptionBlurb
-                                                .append("<b>").append(field[0]).append("</b> ")
-                                                .append(field[1])
-                                                .append(separator);
-                                        }
-                                    }
-                                    descriptionBlurb.append("</html>");
-                                    labelTopMessage.setText(descriptionBlurb.toString());
-
-                                    // Rename the tab title to the file name
-                                    int tabIndex = parentTabbedPane.indexOfComponent(parentRoot);
-                                    if (tabIndex != -1) {
-                                        JPanel tabTitleComponent = (JPanel) parentTabbedPane.getTabComponentAt(tabIndex);
-                                        if (tabTitleComponent.getComponent(0) instanceof JLabel) {
-                                            ((JLabel) tabTitleComponent.getComponent(0))
-                                                .setText(fileChooser.getSelectedFile().getName());
-                                        }
-                                    }
-
-                                    // Populate the values
-                                    operationsTableWrapper.addColumn(
-                                        String.format("Operations (%d)", modelFileHandler.getOperations().size()));
-                                    operationsTableWrapper.insertValues(modelFileHandler.getOperations());
-                                    modelFileHandler.getShapeNames().stream()
-                                        .filter(Objects::nonNull)
-                                        .forEach(comboBoxShapeName::addItem);
-                                    tableOperations.getColumnModel()
-                                        .getColumn(0)
-                                        .setCellRenderer(modelFileHandler.getOperationsTableCellRenderer());
-                                }
-                                SwingUtilities.invokeLater(() -> {
-                                    tableOperations.revalidate();
-                                    tableOperations.repaint();
-                                });
-                                if (tableOperations.getModel().getRowCount() > 0) {
-                                    // Triggers the tableOperations action listener
-                                    SwingUtilities.invokeLater(() -> tableOperations.setRowSelectionInterval(0, 0));
-                                }
-                            } catch (Exception ex) {
-                                BurpApi.getInstance().logging().logToError(ex);
-                                labelTopMessage.setText("Error loading file");
-                            }
-                        }
-                    }.execute();
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
                 }
+
+                BurpApi.getInstance().logging().logToOutput("Opening: " + fileChooser.getSelectedFile().getName());
+
+                operationsTableWrapper.clearRows();
+                buttonSelectFile.setEnabled(false);
+                labelTopMessage.setText("Loading...");
+
+                new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() {
+                        // The EDT needs to load our class loader to fix dependency issues with the MCP library
+                        // Note: we restore the original class loader at the end, otherwise OpenAPI parser breaks
+                        // FIXME: is there a better way
+                        Thread ct = Thread.currentThread();
+                        ClassLoader original = ct.getContextClassLoader();
+                        ct.setContextClassLoader(getClass().getClassLoader());
+
+                        openModelFileHandler.loadModelFromFile(fileChooser.getSelectedFile());
+                        modelFileHandler = openModelFileHandler.getModelFileHandler();
+                        ct.setContextClassLoader(original);
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            textFieldOpenFile.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                            buttonSelectFile.setEnabled(true);
+                            operationsTableWrapper.clearColumns();
+                            if (modelFileHandler != null) {
+                                // Description blurb at the top of the tab
+                                StringBuilder descriptionBlurb = new StringBuilder();
+                                String separator = " · ";
+                                descriptionBlurb.append("<html>");
+                                String[][] descriptionFields = {
+                                    {"Model Type", modelFileHandler.getModelType()},
+                                    {"Service Name", modelFileHandler.getServiceName()},
+                                };
+                                IntStream.range(0, descriptionFields.length).forEachOrdered(i -> {
+                                    String key = descriptionFields[i][0];
+                                    String val = descriptionFields[i][1];
+                                    if (val != null && !val.isEmpty()) {
+                                        descriptionBlurb
+                                            .append("<b>").append(key).append("</b> ")
+                                            .append(val);
+                                        if (i < descriptionFields.length - 1) {
+                                            descriptionBlurb.append(separator);
+                                        }
+                                    }
+                                });
+                                descriptionBlurb.append("</html>");
+                                labelTopMessage.setText(descriptionBlurb.toString());
+
+                                // Rename the tab title to the file name
+                                int tabIndex = parentTabbedPane.indexOfComponent(parentRoot);
+                                if (tabIndex != -1) {
+                                    JPanel tabTitleComponent = (JPanel) parentTabbedPane.getTabComponentAt(tabIndex);
+                                    if (tabTitleComponent.getComponent(0) instanceof JLabel) {
+                                        ((JLabel) tabTitleComponent.getComponent(0))
+                                            .setText(fileChooser.getSelectedFile().getName());
+                                    }
+                                }
+
+                                // Populate the values
+                                operationsTableWrapper.addColumn(
+                                    String.format("Operations (%d)", modelFileHandler.getOperations().size()));
+                                operationsTableWrapper.insertValues(modelFileHandler.getOperations());
+                                modelFileHandler.getShapeNames().stream()
+                                    .filter(Objects::nonNull)
+                                    .forEach(comboBoxShapeName::addItem);
+                                tableOperations.getColumnModel()
+                                    .getColumn(0)
+                                    .setCellRenderer(modelFileHandler.getOperationsTableCellRenderer());
+                            }
+                            SwingUtilities.invokeLater(() -> {
+                                tableOperations.revalidate();
+                                tableOperations.repaint();
+                            });
+                            if (tableOperations.getModel().getRowCount() > 0) {
+                                // Triggers the tableOperations action listener
+                                SwingUtilities.invokeLater(() -> tableOperations.setRowSelectionInterval(0, 0));
+                            }
+                        } catch (Exception ex) {
+                            BurpApi.getInstance().logging().logToError(ex);
+                            labelTopMessage.setText("Error loading file");
+                        }
+                    }
+                }.execute();
             } catch (Exception ex) {
                 BurpApi.getInstance().logging().logToError(ex);
                 labelTopMessage.setText("Error loading file");
