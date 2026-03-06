@@ -103,7 +103,7 @@ public class MainTab {
             // Python port
             String portText = textFieldPythonServerPort.getText().trim();
             if (portText.isEmpty()) {
-                portText = "50055"; // default
+                portText = String.valueOf(Settings.DEFAULT_GRPC_PORT_NUMBER);
             }
             int port = Integer.parseInt(portText);
             if (port != Settings.getGrpcPortNumber()) {
@@ -117,8 +117,9 @@ public class MainTab {
 
         try {
             // OpenAPI host validation
-            boolean shouldAllowInvalidHosts = Objects.requireNonNull(
-                comboBoxValidateHostValue.getSelectedItem()).toString().startsWith("Yes");
+            boolean shouldAllowInvalidHosts = comboBoxValidateHostValue.getSelectedItem() != null ?
+                comboBoxValidateHostValue.getSelectedItem().toString().equals("Yes") :
+                Settings.DEFAULT_INVALID_OPENAPI_HOST_ALLOWED;
             Settings.setInvalidOpenAPIHostAllowed(shouldAllowInvalidHosts);
         } catch (Exception e) {
             labelError.setText(errorMessage);
@@ -129,7 +130,7 @@ public class MainTab {
             // MCP connection timeout
             String timeoutText = textFieldConnectionTimeout.getText().trim();
             if (timeoutText.isEmpty()) {
-                timeoutText = String.valueOf(5); // default
+                timeoutText = String.valueOf(Settings.DEFAULT_MCP_CONNECTION_TIMEOUT);
             }
             int timeoutSeconds = Integer.parseInt(timeoutText);
             if (timeoutSeconds != Settings.getMcpConnectionTimeoutSeconds()) {
