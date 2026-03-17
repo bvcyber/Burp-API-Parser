@@ -345,9 +345,7 @@
                     <children>
                       <splitpane id="524bc" binding="splitPaneHttpRequest">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="200" height="200"/>
-                          </grid>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <oneTouchExpandable value="true"/>
@@ -459,9 +457,7 @@
                                   <grid id="6a2a1" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                                     <margin top="0" left="0" bottom="0" right="0"/>
                                     <constraints/>
-                                    <properties>
-                                      <minimumSize width="300" height="386"/>
-                                    </properties>
+                                    <properties/>
                                     <border type="none"/>
                                     <children>
                                       <grid id="c1569" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -488,9 +484,7 @@
                                           </component>
                                           <component id="6ebef" class="javax.swing.JTextField" binding="textFieldHost" custom-create="true">
                                             <constraints>
-                                              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                                                <preferred-size width="150" height="-1"/>
-                                              </grid>
+                                              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                             </constraints>
                                             <properties/>
                                           </component>
@@ -618,17 +612,13 @@
                                             <children>
                                               <component id="82938" class="javax.swing.JTextField" binding="textFieldCustomHeaderValue" custom-create="true">
                                                 <constraints>
-                                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                                    <preferred-size width="150" height="-1"/>
-                                                  </grid>
+                                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                                 </constraints>
                                                 <properties/>
                                               </component>
                                               <component id="374c9" class="javax.swing.JTextField" binding="textFieldCustomHeader" custom-create="true">
                                                 <constraints>
-                                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                                    <preferred-size width="150" height="-1"/>
-                                                  </grid>
+                                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                                 </constraints>
                                                 <properties/>
                                               </component>
@@ -716,17 +706,13 @@
                                             <children>
                                               <component id="e813e" class="javax.swing.JTextField" binding="textFieldVariable" custom-create="true">
                                                 <constraints>
-                                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                                    <preferred-size width="150" height="-1"/>
-                                                  </grid>
+                                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                                 </constraints>
                                                 <properties/>
                                               </component>
                                               <component id="9f386" class="javax.swing.JTextField" binding="textFieldVariableValue" custom-create="true">
                                                 <constraints>
-                                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                                    <preferred-size width="150" height="-1"/>
-                                                  </grid>
+                                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                                 </constraints>
                                                 <properties/>
                                               </component>
