@@ -50,7 +50,7 @@ dependencies {
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.3")
 
     /** MCP **/
-    implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:0.18.0"))
+    implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:1.1.1"))
     implementation("io.modelcontextprotocol.sdk:mcp")
 
     /** A2A **/
