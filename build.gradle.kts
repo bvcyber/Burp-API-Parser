@@ -54,8 +54,8 @@ dependencies {
     implementation("io.modelcontextprotocol.sdk:mcp")
 
     /** A2A **/
-    implementation("io.github.a2asdk:a2a-java-sdk-client:0.3.3.Final")
-    implementation("io.github.a2asdk:a2a-java-sdk-transport-rest:0.3.3.Final")
+//    implementation("io.github.a2asdk:a2a-java-sdk-client:0.3.3.Final")
+//    implementation("io.github.a2asdk:a2a-java-sdk-transport-rest:0.3.3.Final")
 
     /** Lombok **/
     compileOnly("org.projectlombok:lombok:1.18.42")
