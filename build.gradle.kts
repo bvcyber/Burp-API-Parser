@@ -37,17 +37,17 @@ dependencies {
     compileOnly("jakarta.annotation:jakarta.annotation-api:3.0.0")
 
     /** OpenAPI / Swagger **/
-    implementation("io.swagger.core.v3:swagger-core:2.2.42")
-    implementation("io.swagger.parser.v3:swagger-parser:2.1.37")
-    implementation("org.openapitools:openapi-generator:7.19.0") {
+    implementation("io.swagger.core.v3:swagger-core:2.2.45")
+    implementation("io.swagger.parser.v3:swagger-parser:2.1.39")
+    implementation("org.openapitools:openapi-generator:7.21.0") {
         // Exclude heavy template dependencies and unnecessary modules
         exclude(group = "org.openapitools", module = "openapi-generator-cli")
         exclude(group = "org.openapitools", module = "openapi-generator-online")
         exclude(group = "org.openapitools", module = "openapi-generator-maven-plugin")
         exclude(group = "org.openapitools", module = "openapi-generator-gradle-plugin")
     }
-    implementation("tools.jackson.dataformat:jackson-dataformat-xml:3.0.3")
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.3")
+    implementation("tools.jackson.dataformat:jackson-dataformat-xml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
 
     /** MCP **/
     implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:1.1.1"))
