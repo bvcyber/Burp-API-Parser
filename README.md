@@ -19,9 +19,9 @@
 
 ## 💡 Features
 
-- **🎯 Reduce manual request crafting** – Import your spec and skip straight to security testing
-- **🔄 Multi-format support** – OpenAPI, Swagger, Postman, AWS JSON, MCP models all in one tool
-- **⚡ Instant integration** – One-click send to Repeater, Intruder, Organizer, Sitemap
+- **Reduce manual request crafting** – Import your spec and skip straight to security testing
+- **Multi-format support** – OpenAPI, Swagger, Postman, AWS JSON, MCP models all in one tool
+- **Instant integration** – One-click send to Repeater, Intruder, Organizer, Sitemap
 
 **🚀 Import → Click → Test**
 
@@ -32,7 +32,7 @@
 1. Download the [latest JAR](https://github.com/bvcyber/Model-Parser/releases)
 2. Load into Burp Suite Extensions
 3. Import your spec file
-4. Start testing! 🎉
+4. Start testing!
 
 > **💡 Note:** For AWS JSON models, you'll need the Python server running – see [AWS JSON Setup](#aws-json-setup)
 
@@ -193,19 +193,3 @@ Extremely large OpenAPI specs may fail to load. If you have a large spec, consid
 ### MCP
 
 Currently only the `type`, `url`, and `headers` fields are parsed from the servers config JSON. Servers with `type: "stdio"` are not supported since these do not have a URL to connect to.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📄 License
-
-[MIT LICENSE](LICENSE)
-
-## 🙏 Acknowledgments
-
-Built with [swagger-parser](https://github.com/swagger-api/swagger-parser) and [botocore](https://github.com/boto/botocore)
