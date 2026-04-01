@@ -25,15 +25,15 @@ dependencies {
     implementation("io.burt:jmespath-gson:0.6.0")
 
     /** AWS JSON **/
-    implementation("software.amazon.awssdk:codegen:2.41.13") {
+    implementation("software.amazon.awssdk:codegen:2.42.24") {
         exclude(group = "software.amazon.awssdk", module = "ruleset-testing-core")
     }
     // reference
     // https://github.com/google/protobuf-gradle-plugin/blob/master/examples/exampleKotlinDslProject/build.gradle.kts
-    implementation("com.google.protobuf:protobuf-java:4.33.3")
-    implementation("io.grpc:grpc-netty-shaded:1.78.0")
-    implementation("io.grpc:grpc-protobuf:1.78.0")
-    implementation("io.grpc:grpc-stub:1.78.0")
+    implementation("com.google.protobuf:protobuf-java:4.34.1")
+    implementation("io.grpc:grpc-netty-shaded:1.80.0")
+    implementation("io.grpc:grpc-protobuf:1.80.0")
+    implementation("io.grpc:grpc-stub:1.80.0")
     compileOnly("jakarta.annotation:jakarta.annotation-api:3.0.0")
 
     /** OpenAPI / Swagger **/
